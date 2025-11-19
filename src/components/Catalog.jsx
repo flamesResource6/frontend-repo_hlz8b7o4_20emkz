@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import ProductCard from './ProductCard'
+import AnimatedGrid from './AnimatedGrid'
 
 const API_BASE = import.meta.env.VITE_BACKEND_URL
 
@@ -45,9 +46,9 @@ export default function Catalog({ query = '', refreshKey = 0 }) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-8">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-72 bg-amber-100/60 animate-pulse rounded-3xl border border-amber-200"/>
+          <div key={i} className="h-80 bg-amber-100/60 animate-pulse rounded-3xl border border-amber-200"/>
         ))}
       </div>
     )
@@ -70,10 +71,10 @@ export default function Catalog({ query = '', refreshKey = 0 }) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <AnimatedGrid>
       {products.map(p => (
         <ProductCard key={p.id || p._id || p.title} product={p} />
       ))}
-    </div>
+    </AnimatedGrid>
   )
 }
