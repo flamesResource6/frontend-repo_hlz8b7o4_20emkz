@@ -1,45 +1,56 @@
 import { useState, useMemo } from 'react'
-import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import Catalog from './components/Catalog'
+import PageShell from './components/PageShell'
+import AnimatedGrid from './components/AnimatedGrid'
+import AnimatedCard from './components/AnimatedCard'
 
 function App() {
   const [query, setQuery] = useState('')
-  const [cart, setCart] = useState([])
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [seedStatus, setSeedStatus] = useState('')
+  const [seeding, setSeeding] = useState(false)
 
-  const addToCart = (product) => {
-    setCart((prev) => {
-      const idx = prev.findIndex(p => p.id === product.id)
-      if (idx !== -1) {
-        const copy = [...prev]
-        copy[idx] = { ...copy[idx], qty: copy[idx].qty + 1 }
-        return copy
+  const seedDemo = async () => {
+    try {
+      setSeeding(true)
+      setSeedStatus('')
+      const base = import.meta.env.VITE_BACKEND_URL || (typeof window !== 'undefined' ? window.location.origin.replace(/:\d+$/, ':8000') : '')
+      if (!base) {
+        setSeedStatus('Backend URL not set. Open the Test page to configure or try again later.')
+        return
       }
-      return [...prev, { ...product, qty: 1 }]
-    })
+      const res = await fetch(`${base}/api/seed`, { method: 'POST' })
+      if (!res.ok) throw new Error(`Seed failed: ${res.status}`)
+      const data = await res.json()
+      setSeedStatus(`✅ Added demo products (${(data.seeded?.products ?? 0)} products, ${(data.seeded?.categories ?? 0)} categories).`)
+      setRefreshKey(k => k + 1)
+    } catch (e) {
+      setSeedStatus(`❌ ${e.message}`)
+    } finally {
+      setSeeding(false)
+    }
   }
 
-  const cartCount = useMemo(() => cart.reduce((s, i) => s + i.qty, 0), [cart])
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-amber-100 text-amber-900">
-      <Navbar cartCount={cartCount} />
+    <PageShell>
       <Hero onSearch={setQuery} />
       <main className="max-w-7xl mx-auto px-6 pb-24">
-        <h2 className="text-2xl font-bold mb-4">Featured Products</h2>
-        <Catalog query={query} onAdd={addToCart} />
-      </main>
-      <footer className="border-t border-amber-200/70 bg-amber-50/60">
-        <div className="max-w-7xl mx-auto px-6 py-8 text-sm text-amber-900/70 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>© {new Date().getFullYear()} BeeBoutique — Pure honey, naturally.</div>
-          <div className="flex items-center gap-4">
-            <a className="hover:text-amber-900" href="#">Shipping</a>
-            <a className="hover:text-amber-900" href="#">Returns</a>
-            <a className="hover:text-amber-900" href="#">Contact</a>
+        <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+          <h2 className="text-2xl font-bold">Featured Products</h2>
+          <div className="flex items-center gap-2">
+            <a href="/test" className="text-sm underline text-amber-800/80 hover:text-amber-900">Connection check</a>
+            <button onClick={seedDemo} disabled={seeding} className="text-sm bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white px-3 py-1.5 rounded-lg">{seeding ? 'Adding…' : 'Add demo products'}</button>
           </div>
         </div>
-      </footer>
-    </div>
+        {seedStatus && (
+          <div className="mb-4 text-sm px-3 py-2 rounded-lg border border-amber-200 bg-amber-100/70">{seedStatus}</div>
+        )}
+        <AnimatedGrid>
+          <Catalog query={query} refreshKey={refreshKey} />
+        </AnimatedGrid>
+      </main>
+    </PageShell>
   )
 }
 

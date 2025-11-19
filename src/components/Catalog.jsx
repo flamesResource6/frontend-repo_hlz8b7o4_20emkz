@@ -3,7 +3,7 @@ import ProductCard from './ProductCard'
 
 const API_BASE = import.meta.env.VITE_BACKEND_URL
 
-export default function Catalog({ query = '', onAdd }) {
+export default function Catalog({ query = '', refreshKey = 0 }) {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -14,12 +14,10 @@ export default function Catalog({ query = '', onAdd }) {
       setLoading(true)
       setError('')
       try {
-        // Build endpoint safely even if API_BASE is not set
         let endpoint = '/api/products'
         if (API_BASE) {
           endpoint = new URL('/api/products', API_BASE).toString()
         } else if (typeof window !== 'undefined' && window.location?.origin) {
-          // Fallback to same-origin to avoid URL constructor crash; may 404 but won't break the UI
           endpoint = `${window.location.origin}/api/products`
         }
 
@@ -43,7 +41,7 @@ export default function Catalog({ query = '', onAdd }) {
     }
     load()
     return () => { isMounted = false }
-  }, [query])
+  }, [query, refreshKey])
 
   if (loading) {
     return (
@@ -74,7 +72,7 @@ export default function Catalog({ query = '', onAdd }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
       {products.map(p => (
-        <ProductCard key={p.id || p._id || p.title} product={p} onAdd={onAdd} />
+        <ProductCard key={p.id || p._id || p.title} product={p} />
       ))}
     </div>
   )
