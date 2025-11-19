@@ -45,9 +45,9 @@ export default function Catalog({ query = '', refreshKey = 0 }) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="h-64 bg-amber-100/60 animate-pulse rounded-2xl border border-amber-200"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="h-72 bg-amber-100/60 animate-pulse rounded-3xl border border-amber-200"/>
         ))}
       </div>
     )
@@ -70,7 +70,7 @@ export default function Catalog({ query = '', refreshKey = 0 }) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {products.map(p => (
         <ProductCard key={p.id || p._id || p.title} product={p} />
       ))}
