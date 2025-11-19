@@ -1,4 +1,4 @@
-import { ShoppingCart, Leaf, HoneyPot, Search } from 'lucide-react'
+import { ShoppingCart, Leaf, Jar, Search } from 'lucide-react'
 
 function Badge({ children }) {
   return (
@@ -41,7 +41,7 @@ export default function Hero({ onSearch }) {
             </div>
             <div className="mt-6 flex items-center gap-4 text-amber-900/70">
               <div className="inline-flex items-center gap-2"><Leaf className="w-4 h-4"/>Sustainably sourced</div>
-              <div className="inline-flex items-center gap-2"><HoneyPot className="w-4 h-4"/>No additives</div>
+              <div className="inline-flex items-center gap-2"><Jar className="w-4 h-4"/>No additives</div>
             </div>
           </div>
           <div className="flex-1 w-full">

@@ -4,6 +4,8 @@ function Test() {
   const [backendStatus, setBackendStatus] = useState('checking...')
   const [backendUrl, setBackendUrl] = useState('')
   const [databaseStatus, setDatabaseStatus] = useState(null)
+  const [seeding, setSeeding] = useState(false)
+  const [seedResult, setSeedResult] = useState('')
 
   useEffect(() => {
     checkBackendConnection()
@@ -11,24 +13,20 @@ function Test() {
 
   const checkBackendConnection = async () => {
     try {
-      // Get backend URL from environment variable
-      const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
-      setBackendUrl(baseUrl)
+      const baseUrl = import.meta.env.VITE_BACKEND_URL || ''
+      // Fallback to same origin if not provided
+      const resolved = baseUrl || (typeof window !== 'undefined' ? window.location.origin.replace(/:\\d+$/, ':8000') : '')
+      setBackendUrl(resolved)
 
-      // Test basic backend connectivity
-      const response = await fetch(`${baseUrl}`, {
+      const response = await fetch(`${resolved}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       })
 
       if (response.ok) {
         const data = await response.json()
         setBackendStatus(`✅ Connected - ${data.message || 'OK'}`)
-        
-        // Now test database connectivity
-        await checkDatabaseConnection(baseUrl)
+        await checkDatabaseConnection(resolved)
       } else {
         setBackendStatus(`❌ Failed - ${response.status} ${response.statusText}`)
         setDatabaseStatus({ error: 'Backend not accessible' })
@@ -43,9 +41,7 @@ function Test() {
     try {
       const response = await fetch(`${baseUrl}/test`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       })
 
       if (response.ok) {
@@ -56,6 +52,22 @@ function Test() {
       }
     } catch (error) {
       setDatabaseStatus({ error: `Database check failed - ${error.message}` })
+    }
+  }
+
+  const seedDemo = async () => {
+    if (!backendUrl) return
+    setSeeding(true)
+    setSeedResult('')
+    try {
+      const res = await fetch(`${backendUrl}/api/seed`, { method: 'POST' })
+      if (!res.ok) throw new Error(`Seed failed: ${res.status}`)
+      const data = await res.json()
+      setSeedResult(`✅ Seeded: ${JSON.stringify(data.seeded || data)}`)
+    } catch (e) {
+      setSeedResult(`❌ ${e.message}`)
+    } finally {
+      setSeeding(false)
     }
   }
 
@@ -70,7 +82,7 @@ function Test() {
           <div>
             <h3 className="text-lg font-semibold text-gray-700 mb-2">Backend URL:</h3>
             <p className="text-sm text-gray-600 break-all bg-gray-100 p-2 rounded">
-              {backendUrl || 'Detecting...'}
+              {backendUrl || 'Not set. Set VITE_BACKEND_URL to your backend URL.'}
             </p>
           </div>
 
@@ -111,6 +123,17 @@ function Test() {
           >
             Test Again
           </button>
+
+          <button
+            onClick={seedDemo}
+            disabled={seeding || !backendUrl}
+            className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white font-semibold py-2 px-4 rounded transition-colors"
+          >
+            {seeding ? 'Seeding...' : 'Seed Demo Data'}
+          </button>
+          {seedResult && (
+            <p className="text-sm font-mono mt-2 text-center">{seedResult}</p>
+          )}
 
           <a
             href="/"
